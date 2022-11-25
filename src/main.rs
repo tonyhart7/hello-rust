@@ -1,29 +1,18 @@
+use std::env;
+use std::fs;
+
 fn main() {
-    let string1 = String::from("abcd");
-    let string2 = "xyz";
+    // --snip--
+    let args: Vec<String> = env::args().collect();
 
-    let result = longest_with_an_announcement(
-        string1.as_str(),
-        string2,
-        "Today is someone's birthday!",
-    );
-    println!("The longest string is {}", result);
-}
+    let query = &args[1];
+    let file_path = &args[2];
 
-use std::fmt::Display;
+    println!("Searching for {}", query);
+    println!("In file {}", file_path);
 
-fn longest_with_an_announcement<'a, T>(
-    x: &'a str,
-    y: &'a str,
-    ann: T,
-) -> &'a str
-where
-    T: Display,
-{
-    println!("Announcement! {}", ann);
-    if x.len() > y.len() {
-        x
-    } else {
-        y
-    }
+    let contents = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    println!("With text:\n{contents}");
 }
