@@ -1,18 +1,42 @@
-use std::env;
-use std::fs;
+use crate::List::{Cons, Nil};
+use std::cell::RefCell;
+use std::rc::Rc;
+
+#[derive(Debug)]
+enum List {
+    Cons(i32, RefCell<Rc<List>>),
+    Nil,
+}
+
+impl List {
+    fn tail(&self) -> Option<&RefCell<Rc<List>>> {
+        match self {
+            Cons(_, item) => Some(item),
+            Nil => None,
+        }
+    }
+}
 
 fn main() {
-    // --snip--
-    let args: Vec<String> = env::args().collect();
+    let a = Rc::new(Cons(5, RefCell::new(Rc::new(Nil))));
 
-    let query = &args[1];
-    let file_path = &args[2];
+    println!("a initial rc count = {}", Rc::strong_count(&a));
+    println!("a next item = {:?}", a.tail());
 
-    println!("Searching for {}", query);
-    println!("In file {}", file_path);
+    let b = Rc::new(Cons(10, RefCell::new(Rc::clone(&a))));
 
-    let contents = fs::read_to_string(file_path)
-        .expect("Should have been able to read the file");
+    println!("a rc count after b creation = {}", Rc::strong_count(&a));
+    println!("b initial rc count = {}", Rc::strong_count(&b));
+    println!("b next item = {:?}", b.tail());
 
-    println!("With text:\n{contents}");
+    if let Some(link) = a.tail() {
+        *link.borrow_mut() = Rc::clone(&b);
+    }
+
+    println!("b rc count after changing a = {}", Rc::strong_count(&b));
+    println!("a rc count after changing a = {}", Rc::strong_count(&a));
+
+    // Uncomment the next line to see that we have a cycle;
+    // it will overflow the stack
+    println!("a next item = {:?}", a.tail());
 }
